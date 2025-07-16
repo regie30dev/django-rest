@@ -1,10 +1,14 @@
-from django.http import JsonResponse
+#from django.http import JsonResponse
+from rest_framework.response import Response
+from rest_framework import status
+from rest_framework.decorators import api_view
+from students.models import Student
+from .serializers import StudentSerializer
 
 
+@api_view(['GET'])
 def studentsView(request):
-    students = {
-        'id': '0001',
-        'name': 'Regie',
-        'class': 'Machine learning'
-    }
-    return JsonResponse(students)
+    if request.method == 'GET':
+        students = Student.objects.all()
+        serializer = StudentSerializer(students, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
