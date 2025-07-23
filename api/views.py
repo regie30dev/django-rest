@@ -5,9 +5,15 @@ from rest_framework.decorators import api_view
 from rest_framework.views import APIView
 from rest_framework import mixins, generics, viewsets
 from django.http import Http404
+from django.shortcuts import get_object_or_404
 from students.models import Student
+from blogs.models import Blog, Comment
 from employees.models import Employee
 from .serializers import StudentSerializer, EmployeeSerializer
+from blogs.serializers import BlogSerializer, CommentSerializer
+from .paginations import CustomPagination 
+from django_filters.rest_framework import DjangoFilterBackend
+from employees.filters import EmployeeFilter
 
 
 @api_view(['GET', 'POST'])
@@ -129,15 +135,67 @@ def studentDetailView(request, pk):
 #     serializer_class = EmployeeSerializer
 #     lookup_field = "pk"
 
-class EmployeeViewset(viewsets.ViewSet):
-    def list(self, request):
-        queryset = Employee.objects.all()
-        serializer = EmployeeSerializer(queryset, many=True)
-        return Response(serializer.data)
+# class EmployeeViewset(viewsets.ViewSet):
+#     def list(self, request):
+#         queryset = Employee.objects.all()
+#         serializer = EmployeeSerializer(queryset, many=True)
+#         return Response(serializer.data)
     
-    def create(self, request):
-        serializer = EmployeeSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors)
+#     def create(self, request):
+#         serializer = EmployeeSerializer(data=request.data)
+#         if serializer.is_valid():
+#             serializer.save()
+#             return Response(serializer.data, status=status.HTTP_201_CREATED)
+#         return Response(serializer.errors)
+    
+#     def retrieve(self, request, pk=None):
+#         # queryset = Employee.objects.all()
+#         employee = get_object_or_404(Employee, pk=pk)
+#         serializer = EmployeeSerializer(employee)
+#         return Response(serializer.data, status=status.HTTP_200_OK)
+    
+#     def update(self, request, pk=None):
+#         employee = get_object_or_404(Employee, pk=pk)
+#         serializer = EmployeeSerializer(employee, data=request.data)
+#         if serializer.is_valid():
+#             serializer.save()
+#             return Response(serializer.data)
+#         return Response(serializer.errors)
+    
+#     def delete(self, request, pk=None):
+#         employee = get_object_or_404(Employee, pk=pk)
+#         employee.delete()
+#         return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class EmployeeViewset(viewsets.ModelViewSet):
+    queryset = Employee.objects.all()
+    serializer_class = EmployeeSerializer
+    pagination_class = CustomPagination
+    filterset_class = EmployeeFilter
+    
+class BlogsView(generics.ListCreateAPIView):
+    queryset = Blog.objects.all()
+    serializer_class = BlogSerializer
+    # filter_backends = []
+    #  filterset_fields = ['id', 'blog_title']
+    #  filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
+    #  search_fields = ['^blog_title']
+    #  ordering_fields = ['blog_title'] 
+    
+    
+class BlogDetailView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Blog.objects.all()
+    serializer_class = BlogSerializer
+    lookup_field = 'pk'
+
+class CommentsView(generics.ListCreateAPIView):
+    queryset = Comment.objects.all()
+    serializer_class = CommentSerializer
+    
+class CommentDetailView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Comment.objects.all()
+    serializer_class = CommentSerializer
+    lookup_field = 'pk'
+    
+    
